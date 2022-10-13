@@ -8,11 +8,13 @@ using UnityEngine.UI;
 
 public class NetworkedServer : MonoBehaviour
 {
+    public static NetworkedServer Instance;
     int maxConnections = 1000;
     int reliableChannelID;
     int unreliableChannelID;
     int hostID;
-    int socketPort = 5491;
+    int socketPort = 3333;
+    static GameObject sManager;
 
     // Start is called before the first frame update
     void Start()
@@ -24,6 +26,10 @@ public class NetworkedServer : MonoBehaviour
         HostTopology topology = new HostTopology(config, maxConnections);
         hostID = NetworkTransport.AddHost(topology, socketPort, null);
 
+    }
+    private void Awake()
+    {
+        Instance = this;
     }
 
     // Update is called once per frame
@@ -67,7 +73,14 @@ public class NetworkedServer : MonoBehaviour
 
     private void ProcessRecievedMsg(string msg, int id)
     {
-        Debug.Log("msg recieved = " + msg + ".  connection id = " + id);
+        Debug.Log("Verify Usser = " + msg + " and connection id = " + id);
+
+        SystemManager.Instance.CheckAccoutnt(msg, id);
     }
 
+
+    static public void SetSystemManager(GameObject SystemManager)
+    {
+        sManager = SystemManager;
+    }
 }
