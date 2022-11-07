@@ -371,11 +371,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 212a156df4237c14a8f3ca9960b32724, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  messageInfo: {fileID: 0}
-  messageAGranted: {fileID: 0}
-  messageADenied: {fileID: 0}
-  messageWrongUsername: {fileID: 0}
-  timer: 0
 --- !u!4 &1508956169
 Transform:
   m_ObjectHideFlags: 0
@@ -419,6 +414,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 71c06470e8d22d04f9ef6d8e758a52a8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  ObjectsPrefabs:
+  - {fileID: 7479660841579234954, guid: 18a74cc22be77024d93e0bb12a55dace, type: 3}
+  - {fileID: 1362836418302304497, guid: 3218a4a0235a4204791c6f1dbda52241, type: 3}
+  Players: []
+  GameRooms: []
 --- !u!4 &1920391358
 Transform:
   m_ObjectHideFlags: 0

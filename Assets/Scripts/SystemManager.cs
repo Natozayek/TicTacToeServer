@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using System.IO;
-
+using System;
 
 public class SystemManager : MonoBehaviour
 {
@@ -15,8 +15,8 @@ public class SystemManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-      DataManager.SetSystemManager(gameObject);
-      NetworkedServer.SetSystemManager(gameObject);
+        DataManager.SetSystemManager(gameObject);
+        NetworkedServer.SetSystemManager(gameObject);
     }
     private void Awake()
     {
@@ -25,7 +25,7 @@ public class SystemManager : MonoBehaviour
 
     public void createAccount(string username, string password, int id)
     {
-        if(File.Exists(@"..\TicTacToeServer\Users\" + username + ".txt"))
+        if (File.Exists(@"..\TicTacToeServer\Users\" + username + ".txt"))
         {
             NetworkedServer.Instance.notifyUser(1, id, "");
         }
@@ -34,17 +34,12 @@ public class SystemManager : MonoBehaviour
             DataManager.SaveData(username, password);
             NetworkedServer.Instance.notifyUser(4, id, "");
         }
-        
+
     }
     public void LoginVerification(string username, string password, int userID)
     {
 
         DataManager.VerifyData(username, password, userID);
     }
-
-
-    
-
- 
 
 }

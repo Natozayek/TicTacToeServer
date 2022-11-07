@@ -44,6 +44,8 @@ public class DataManager : MonoBehaviour
                     NetworkedServer.Instance.notifyUser(0, userID, " AccesGranted"); // ACCESS GRANTED 
 
                     //Create player in game 
+                    //CreatePlayer(nameofUser, userID)
+                    NetworkedServer.Instance.CretePlayer(lineData[0], userID);
                 }
                 else
                 {
