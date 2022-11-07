@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.Networking;
 using System.IO;
 using UnityEngine.UI;
+using System;
 
 public class NetworkedServer : MonoBehaviour
 {
@@ -15,6 +16,10 @@ public class NetworkedServer : MonoBehaviour
     int hostID;
     int socketPort = 3333;
     static GameObject sManager;
+
+    public List<GameObject> ObjectsPrefabs = new List<GameObject>();
+    public List<PlayerInfo> Players = new List<PlayerInfo>();
+    public List<GameRoomManager> GameRooms = new List<GameRoomManager>();
 
     // Start is called before the first frame update
     void Start()
@@ -73,14 +78,58 @@ public class NetworkedServer : MonoBehaviour
 
     private void ProcessRecievedMsg(string msg, int id)
     {
-        Debug.Log("Verify Usser = " + msg + " and connection id = " + id);
 
-        SystemManager.Instance.CheckAccoutnt(msg, id);
+        string[] dataReceived = msg.Split(',');
+        switch (int.Parse(dataReceived[0]))
+        {
+            case 0: //LOGIN VERIFICATION
+                Debug.Log("VERIFYING");
+                SystemManager.Instance.LoginVerification(dataReceived[1], dataReceived[2], id);
+                break;
+
+
+            case 1://CREATE ACCOUNT
+                SystemManager.Instance.createAccount(dataReceived[1], dataReceived[2], id);
+                break;
+        }
+
+      
     }
 
+   
 
     static public void SetSystemManager(GameObject SystemManager)
     {
         sManager = SystemManager;
+    }
+    public void notifyUser(int actionID, int userID, string message )
+    {
+        string msg = "";
+
+        switch (actionID)
+        {
+
+            case 0:
+                msg = "0";// ACCESS GRANTED - GOOD USERNAME AND PASSWORD
+                break;
+
+            case 1:
+                msg = "1"; // ERROR-  Account name already exist
+                break;
+
+            case 2:
+                msg = "2"; // ACCESS DENIED - Wrong username
+                break;
+            case 3:// ACCESS DENIED -Wrong password
+                msg = "3";
+                break;
+            case 4:
+                msg = "4," + message; //Account created successfully 
+                break;
+            case 5://GameRoom Creation/ Joining Game Room
+        
+                break;
+        }
+        SendMessageToClient(msg, userID);
     }
 }

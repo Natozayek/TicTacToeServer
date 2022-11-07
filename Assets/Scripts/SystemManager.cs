@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using System.IO;
 
 
 public class SystemManager : MonoBehaviour
@@ -22,10 +23,23 @@ public class SystemManager : MonoBehaviour
         Instance = this;
     }
 
-
-    public void CheckAccoutnt(string user, int id)
+    public void createAccount(string username, string password, int id)
     {
-        DataManager.SaveData(user, id);  
+        if(File.Exists(@"..\TicTacToeServer\Users\" + username + ".txt"))
+        {
+            NetworkedServer.Instance.notifyUser(1, id, "");
+        }
+        else
+        {
+            DataManager.SaveData(username, password);
+            NetworkedServer.Instance.notifyUser(4, id, "");
+        }
+        
+    }
+    public void LoginVerification(string username, string password, int userID)
+    {
+
+        DataManager.VerifyData(username, password, userID);
     }
 
 
