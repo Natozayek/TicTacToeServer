@@ -88,7 +88,6 @@ public class NetworkedServer : MonoBehaviour
         switch (int.Parse(dataReceived[0]))
         {
             case 0: //LOGIN VERIFICATION
-                Debug.Log("VERIFYING");
                 SystemManager.Instance.LoginVerification(dataReceived[1], dataReceived[2], userID);
                 break;
 
@@ -103,9 +102,13 @@ public class NetworkedServer : MonoBehaviour
                 joinOrCreateGameRoom(userID, dataReceived[2], dataReceived[1]);//USER ID, ROOM NAME, PLAYERNAME
                 break;
 
+            case 3://Game is Ready
+                StartMatch(userID, dataReceived[1]);
+                break;
+
         }
 
-      
+
     }
     #endregion
 
@@ -173,6 +176,51 @@ public class NetworkedServer : MonoBehaviour
             notifyUser(5, userID, roomName);
         }
     }
+    private void StartMatch(int userID, string roomName)
+    {
+
+        bool searchisDone = false;
+        int i = 0;
+
+        Debug.Log("RoomName " + roomName);
+
+
+        while (!searchisDone)
+        {
+            if (i == GameRooms.Count)
+            {
+                searchisDone = true;
+            }
+            else if (GameRooms[i].GetComponent<GameRoomManager>().roomName == roomName)
+            {
+                searchisDone = true;
+                Debug.Log("Search is done");
+                if (searchisDone)
+                {
+                    if ((GameRooms[i].GetComponent<GameRoomManager>().Player2 && GameRooms[i].GetComponent<GameRoomManager>().Player1) == true)
+                    {
+                        Debug.Log(GameRooms[i].GetComponent<GameRoomManager>().Player1.GetComponent<PlayerInfo>().userID.ToString() + " PLAYER1");
+                        Debug.Log(userID + "Player 2");
+
+                        notifyUser(7, GameRooms[i].GetComponent<GameRoomManager>().Player1.GetComponent<PlayerInfo>().userID, roomName);
+                        
+                        notifyUser(7, userID, roomName);
+
+                        Debug.Log("Notifying");
+
+                    }
+
+                }
+            }
+            else
+            {
+                i++;
+            }
+        }
+
+     
+    
+    }
     public int FindPlayerID(int userID)
     {
         bool searchisDone = false;
@@ -239,6 +287,9 @@ public class NetworkedServer : MonoBehaviour
                 break;
             case 6: // Joining Game Room
                 msg = "6," + message;
+                break;
+            case 7:
+                msg = "7," + message;
                 break;
         }
         SendMessageToClient(msg, userID);
