@@ -106,10 +106,16 @@ public class NetworkedServer : MonoBehaviour
                 StartMatch(userID, dataReceived[1]);
                 break;
 
+            case 4: // PlayerMove
+
+                PlayerXMadeMove(userID, int.Parse(dataReceived[1]), int.Parse(dataReceived[2]));//UserID, ButtonIndex, PlayerOnTurn
+                break;
         }
 
 
     }
+
+   
     #endregion
 
     #region Create player/ GameRooms/ Join Rooms/ FindPlayer/ notifyEnvets 5 & 6
@@ -202,9 +208,9 @@ public class NetworkedServer : MonoBehaviour
                         Debug.Log(GameRooms[i].GetComponent<GameRoomManager>().Player1.GetComponent<PlayerInfo>().userID.ToString() + " PLAYER1");
                         Debug.Log(userID + "Player 2");
 
-                        notifyUser(7, GameRooms[i].GetComponent<GameRoomManager>().Player1.GetComponent<PlayerInfo>().userID, roomName);
+                        notifyUser(7, GameRooms[i].GetComponent<GameRoomManager>().Player1.GetComponent<PlayerInfo>().userID, roomName + ",0");
                         
-                        notifyUser(7, userID, roomName);
+                        notifyUser(7, userID, roomName + ",1");
 
                         Debug.Log("Notifying");
 
@@ -258,6 +264,44 @@ public class NetworkedServer : MonoBehaviour
             return -1;
         }
     }
+    private void PlayerXMadeMove(int userID, int ButtonIndex, int turnOfPlayerX)
+    {
+        bool searchisDone = false;
+        int i = 0;
+    
+
+        while (!searchisDone)
+        {
+            if (i == GameRooms.Count)
+            {
+                searchisDone = true;
+            }
+            else if (GameRooms[i].GetComponent<GameRoomManager>().Player1.GetComponent<PlayerInfo>().userID == userID )
+            {
+                searchisDone = true;
+                if (searchisDone)
+                {
+                    notifyUser(8, GameRooms[i].GetComponent<GameRoomManager>().Player2.GetComponent<PlayerInfo>().userID, ButtonIndex.ToString() + "," + turnOfPlayerX);
+
+                }
+            }
+            else if (GameRooms[i].GetComponent<GameRoomManager>().Player2.GetComponent<PlayerInfo>().userID == userID)
+            {
+                searchisDone = true;
+                if (searchisDone)
+                {
+                    notifyUser(8, GameRooms[i].GetComponent<GameRoomManager>().Player1.GetComponent<PlayerInfo>().userID, ButtonIndex.ToString() + "," + turnOfPlayerX);
+
+                }
+            }
+            else
+            {
+                i++;
+            }
+        }
+
+
+    }
     public void notifyUser(int actionID, int userID, string message)
     {
         string msg = "";
@@ -288,8 +332,12 @@ public class NetworkedServer : MonoBehaviour
             case 6: // Joining Game Room
                 msg = "6," + message;
                 break;
-            case 7:
+            case 7://Start Game
                 msg = "7," + message;
+                break;
+
+            case 8: // SEND MOVE TO OTHER PLAYER
+                msg = "8," + message;
                 break;
         }
         SendMessageToClient(msg, userID);
