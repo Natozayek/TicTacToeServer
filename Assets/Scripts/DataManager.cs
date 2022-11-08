@@ -7,26 +7,22 @@ using System.IO;
 public class DataManager : MonoBehaviour
 {
     static  GameObject sManager, Network;
-    public static int indexOf = 0;
-
 
     static public void SetSystemManager(GameObject SystemManager)
     {
         sManager = SystemManager;
     }
 
+    #region Save Data for username creation/ Verify Data to handle loging access
+
     static public void SaveData(string username, string password)
     {
-        
-        {
             using (StreamWriter sw = File.AppendText(@"..\TicTacToeServer\Users\"+ username + ".txt"))
             {
                 sw.WriteLine(username + "," + password);
             }
-        }
-       
-
     }
+
     static public void VerifyData(string username, string password, int userID)
     {
         if (File.Exists(@"..\TicTacToeServer\Users\" + username+ ".txt"))
@@ -65,55 +61,7 @@ public class DataManager : MonoBehaviour
 
 
     }
-
-    static public string GetNameForLogin()
-    {
-        //return sManager.GetComponent<SystemManager>().GetUsername();
-        return "";
-    }
-    static public string GetPassWordForLogin()
-    {
-        //return sManager.GetComponent<SystemManager>().GetPassWord();
-        return "";
-    }
-    static public string GetNewNameFromInput()
-    {
-        // return sManager.GetComponent<SystemManager>().GetNewUsername();
-        return "";
-    }
-
-    static public string GetNewPassWordFromInput()
-    {
-        //  return sManager.GetComponent<SystemManager>().GetNewPassWord();
-        return "";
-    }
+    #endregion
 
 
-
-    //static public void AddConnectionID(int connetionID)
-    //{
-    //    Debug.Log(GetNameForLogin() + ".txt");
-
-    //    if (File.Exists(GetNameForLogin() + ".txt"))
-    //    {
-
-    //        using (StreamWriter sw = File.AppendText(GetNameForLogin() + ".txt"))
-    //        {
-    //            Debug.Log("INSIDE");
-    //            //sw.WriteLine(GetPassWordForLogin().ToString());
-
-    //            sw.WriteLine(connetionID);
-
-    //            sw.Close();
-    //        }
-    //    }
-    //}
-    static public int GetLoginIndex()
-    {
-        return indexOf;
-    }
-    static public int SetLoginIndex(int data)
-    {
-        return data;
-    }   
 }
