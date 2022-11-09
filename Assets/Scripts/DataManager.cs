@@ -37,11 +37,16 @@ public class DataManager : MonoBehaviour
                 if (lineData[0] == username && lineData[1] == password)
                 {
                     Debug.Log("True");
-                    NetworkedServer.Instance.notifyUser(0, userID, " AccesGranted"); // ACCESS GRANTED 
+
+                  
+                    NetworkedServer.Instance.CreatePlayer(lineData[0], userID);
+
+                    NetworkedServer.Instance.notifyUser(0, userID, "AccesGranted"); // ACCESS GRANTED 
+                    
 
                     //Create player in game 
                     //CreatePlayer(nameofUser, userID)
-                    NetworkedServer.Instance.CretePlayer(lineData[0], userID);
+
                 }
                 else
                 {

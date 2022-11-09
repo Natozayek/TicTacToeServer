@@ -88,7 +88,22 @@ public class NetworkedServer : MonoBehaviour
         switch (int.Parse(dataReceived[0]))
         {
             case 0: //LOGIN VERIFICATION
-                SystemManager.Instance.LoginVerification(dataReceived[1], dataReceived[2], userID);
+                bool usernameLoggedin = false;
+
+               usernameLoggedin =  FindPlayerByName(userID, dataReceived[1]);
+
+
+                if (usernameLoggedin)
+                {
+                    NetworkedServer.Instance.notifyUser(10, userID, "AccesDenied"); // ACCESS Denied 
+                    break;
+                }
+                else
+                {
+
+                    SystemManager.Instance.LoginVerification(dataReceived[1], dataReceived[2], userID);
+                }
+
                 break;
 
 
@@ -124,11 +139,13 @@ public class NetworkedServer : MonoBehaviour
     #endregion
 
     #region Create player/ GameRooms/ Join Rooms/ FindPlayer/ notifyEnvets 5 & 6
-    public void CretePlayer(string playerName, int userID)
+    public void CreatePlayer(string playerName, int userID)
     {
         GameObject playerX;
         playerX = Instantiate(ObjectsPrefabs[0]);
         playerX.transform.parent = transform;
+
+        
         playerX.GetComponent<PlayerInfo>().name = playerName;
         playerX.GetComponent<PlayerInfo>().playerName = playerName;
         playerX.GetComponent<PlayerInfo>().userID = userID;
@@ -316,6 +333,43 @@ public class NetworkedServer : MonoBehaviour
             return -1;
         }
     }
+    public bool FindPlayerByName(int userID, string name)
+    {
+        bool searchisDone = false;
+        bool isPlayerFound = false;
+        int i = 0;
+
+        while (searchisDone == false)
+        {
+
+            if (i == Players.Count)
+            {
+                Debug.Log("Player not found :" + i);
+                searchisDone = true;
+            }
+            else if (Players[i].GetComponent<PlayerInfo>().playerName == name)
+            {
+                Debug.Log(Players[i].GetComponent<PlayerInfo>().playerName + " <---  Name  tringying to join ->: " + name);
+                searchisDone = true;
+                isPlayerFound = true;
+            }
+            else
+            {
+                Debug.Log(name + "  not found " );
+                i++;
+            }
+        }
+
+        if (isPlayerFound == true)
+        {
+            return true;
+        }
+
+        else
+        {
+            return false;
+        }
+    }
     private void PlayerXMadeMove(int userID, int ButtonIndex, int turnOfPlayerX)
     {
         bool searchisDone = false;
@@ -394,8 +448,9 @@ public class NetworkedServer : MonoBehaviour
             
             case 9: // SEND MOVE TO OTHER PLAYER
                 msg = "9," + message;
-
-
+                break;
+            case 10: // Error - Player already connected
+                msg = "10," + message;
                 break;
         }
         SendMessageToClient(msg, userID);
