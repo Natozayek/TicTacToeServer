@@ -128,7 +128,12 @@ public class NetworkedServer : MonoBehaviour
 
             case 5: //Reset game
                 ReMatch(userID, dataReceived[1]);
+                break;
 
+
+            case 6: //Leave game notification
+                Debug.Log("Find room by name and delete it");
+                findRoomByName(userID, dataReceived[1]);
                 break;
         }
 
@@ -370,6 +375,69 @@ public class NetworkedServer : MonoBehaviour
             return false;
         }
     }
+
+    public void  findRoomByName(int userID, string roomName)
+    {
+        bool searchisDone = false;
+        bool isRoomFound = false;
+        int i = 0;
+        while (!searchisDone)
+        {
+            if (i == GameRooms.Count)
+            {
+                searchisDone = true;
+                Debug.Log("no rooms available");
+            }
+
+            else if(GameRooms[i].GetComponent<GameRoomManager>().roomName == roomName)
+            {
+                Debug.Log("room found");
+
+
+                if (GameRooms[i].GetComponent<GameRoomManager>().Player1.GetComponent<PlayerInfo>().userID == userID)
+                 {
+                    searchisDone = true;
+                      if (searchisDone)
+                      {
+                          notifyUser(11, GameRooms[i].GetComponent<GameRoomManager>().Player2.GetComponent<PlayerInfo>().userID, "Player left the game") ;
+                          notifyUser(11, userID, "Player left the game");
+                          isRoomFound= true;
+                        if (isRoomFound)
+                            GameRooms.RemoveAt(i);
+                        GameObject roomObject = GameObject.Find(roomName);
+                        Destroy(roomObject);
+                        Debug.Log("Room found and deleted");
+                      }
+                 }
+                else if (GameRooms[i].GetComponent<GameRoomManager>().Player2.GetComponent<PlayerInfo>().userID == userID)
+                {
+                    searchisDone = true;
+                    if (searchisDone)
+                    {
+                        notifyUser(11, GameRooms[i].GetComponent<GameRoomManager>().Player1.GetComponent<PlayerInfo>().userID, "Player left the game");
+                        notifyUser(11, userID, "Player left the game");
+                        isRoomFound = true;
+                        if(isRoomFound)
+                        GameRooms.RemoveAt(i);
+                        GameObject roomObject = GameObject.Find(roomName);
+                        Destroy(roomObject);
+                        Debug.Log("Room found and deleted");
+
+
+                    }
+                }
+            }
+           
+            else
+            {
+                i++;
+            }
+
+           
+        }
+
+      
+    }
     private void PlayerXMadeMove(int userID, int ButtonIndex, int turnOfPlayerX)
     {
         bool searchisDone = false;
@@ -452,9 +520,15 @@ public class NetworkedServer : MonoBehaviour
             case 10: // Error - Player already connected
                 msg = "10," + message;
                 break;
+
+            case 11: // Error - Player left the game room
+                msg = "11," + message;
+                break;
         }
         SendMessageToClient(msg, userID);
     }
+
+
 
     #endregion
     
