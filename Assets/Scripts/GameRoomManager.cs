@@ -8,5 +8,6 @@ public class GameRoomManager : MonoBehaviour
     public string roomName;
     public GameObject Player1;
     public GameObject Player2;
+    public List<GameObject> spectators = new List<GameObject>();
 
 }
