@@ -135,6 +135,10 @@ public class NetworkedServer : MonoBehaviour
                 Debug.Log("Find room by name and delete it");
                 findRoomByName(userID, dataReceived[1]);
                 break;
+
+            case 7://Message received in the server now send it to X player to show it in their screen
+                displayMessage(userID, dataReceived[1]);
+                break;
         }
 
 
@@ -476,6 +480,42 @@ public class NetworkedServer : MonoBehaviour
 
 
     }
+    public void displayMessage(int userID, string message)
+    {
+        bool searchisDone = false;
+        int i = 0;
+
+
+        while (!searchisDone)
+        {
+            if (i == GameRooms.Count)
+            {
+                searchisDone = true;
+            }
+            else if (GameRooms[i].GetComponent<GameRoomManager>().Player1.GetComponent<PlayerInfo>().userID == userID)
+            {
+                searchisDone = true;
+                if (searchisDone)
+                {
+                    notifyUser(12, GameRooms[i].GetComponent<GameRoomManager>().Player2.GetComponent<PlayerInfo>().userID, message);
+
+                }
+            }
+            else if (GameRooms[i].GetComponent<GameRoomManager>().Player2.GetComponent<PlayerInfo>().userID == userID)
+            {
+                searchisDone = true;
+                if (searchisDone)
+                {
+                    notifyUser(12, GameRooms[i].GetComponent<GameRoomManager>().Player1.GetComponent<PlayerInfo>().userID, message);
+
+                }
+            }
+            else
+            {
+                i++;
+            }
+        }
+    }
     public void notifyUser(int actionID, int userID, string message)
     {
         string msg = "";
@@ -523,6 +563,10 @@ public class NetworkedServer : MonoBehaviour
 
             case 11: // Error - Player left the game room
                 msg = "11," + message;
+                break;
+
+            case 12: //Message to display
+                msg = "12," + message;
                 break;
         }
         SendMessageToClient(msg, userID);
