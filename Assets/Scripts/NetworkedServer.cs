@@ -22,6 +22,7 @@ public class NetworkedServer : MonoBehaviour
     public List<GameObject> Players = new List<GameObject>();
     public List<GameObject> GameRooms = new List<GameObject>();
 
+    public string usedButtons = "";
 
     void Start()
     {
@@ -122,6 +123,15 @@ public class NetworkedServer : MonoBehaviour
 
             case 4: // PlayerMove
 
+                if(usedButtons == "")
+                {
+                    usedButtons = dataReceived[1];
+                }
+                else
+                {
+                    usedButtons = usedButtons + "," + (dataReceived[1]);
+                }
+                
                 PlayerXMadeMove(userID, int.Parse(dataReceived[1]), int.Parse(dataReceived[2]));//UserID, ButtonIndex, PlayerOnTurn
                 break;
 
@@ -138,12 +148,20 @@ public class NetworkedServer : MonoBehaviour
             case 7://Message received in the server now send it to X player to show it in their screen
                 displayMessage(userID, dataReceived[1]);
                 break;
+
+            case 8://Save replay data - Username (for folder name ), UserID, turnofPlayer, replayName, usedButtons 
+               SaveReplay(userID, int.Parse(dataReceived[1]), dataReceived[2].ToString(), usedButtons);
+                break;
+
+
         }
 
 
     }
 
-   
+
+
+
     #endregion
 
     #region Create player/ GameRooms/ Join Rooms/ FindPlayer/ notifyEnvets 5 & 6
@@ -309,7 +327,7 @@ public class NetworkedServer : MonoBehaviour
                        if(userID== GameRooms[i].GetComponent<GameRoomManager>().Player1.GetComponent<PlayerInfo>().userID)
                         {
                             notifyUser(9,userID, roomName + ",0");
-                            notifyUser(9, GameRooms[i].GetComponent<GameRoomManager>().Player2.GetComponent<PlayerInfo>().userID, roomName + ",0");
+                            notifyUser(9, GameRooms[i].GetComponent<GameRoomManager>().Player2.GetComponent<PlayerInfo>().userID, roomName + ",1");
 
                             for (int j = 0; j < GameRooms[i].GetComponent<GameRoomManager>().spectators.Count; j++)
                             {
@@ -320,7 +338,7 @@ public class NetworkedServer : MonoBehaviour
                         else
                         {
                                notifyUser(9, userID, roomName + ",0");
-                               notifyUser(9, GameRooms[i].GetComponent<GameRoomManager>().Player1.GetComponent<PlayerInfo>().userID, roomName + ",0");
+                               notifyUser(9, GameRooms[i].GetComponent<GameRoomManager>().Player1.GetComponent<PlayerInfo>().userID, roomName + ",1");
 
                             for (int j = 0; j < GameRooms[i].GetComponent<GameRoomManager>().spectators.Count; j++)
                             {
@@ -496,6 +514,38 @@ public class NetworkedServer : MonoBehaviour
             }  
         }
     }
+
+    public void SaveReplay(int userID, int PlayerInTurn, string replayname, string usedButtons)
+    {
+        bool searchisDone = false;
+        int i = 0;
+
+
+        while (!searchisDone)
+        {
+            if (i == Players.Count)
+            {
+                searchisDone = true;
+            }
+            else if (Players[i].GetComponent<PlayerInfo>().userID == userID)
+            {
+                searchisDone = true;
+            }
+            else
+            {
+                i++;
+
+            }
+        }
+
+        if (searchisDone)
+        {
+
+           string playerName = Players[i].GetComponent<PlayerInfo>().gameObject.name;
+            SystemManager.Instance.SavingDataInServer(playerName, PlayerInTurn, replayname, usedButtons);  
+        }
+    }
+
     private void PlayerXMadeMove(int userID, int ButtonIndex, int turnOfPlayerX)
     {
         bool searchisDone = false;

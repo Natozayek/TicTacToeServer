@@ -43,4 +43,10 @@ public class SystemManager : MonoBehaviour
     }
     #endregion
 
+    public void SavingDataInServer(string username, int turnofPlayer, string replayName,  string usedButtons)
+    {
+        DataManager.SaveReplayData(username, turnofPlayer, replayName, usedButtons);
+
+    }
+
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Text;
 using System.IO;
+using System;
 
 public class DataManager : MonoBehaviour
 {
@@ -64,6 +65,29 @@ public class DataManager : MonoBehaviour
             NetworkedServer.Instance.notifyUser(2, userID, " AccesDenied -Wrong username");
         }
 
+
+    }
+
+    static public void SaveReplayData(string username, int turnofPlayer, string replayName, string usedButtons)
+    {
+        if (!File.Exists(@"..\TicTacToeServer\ReplayData\" + username + @"\" + replayName + ".txt"))
+        {
+
+            Directory.CreateDirectory(@"..\TicTacToeServer\ReplayData\" + username);
+
+            using (StreamWriter streamWriter = new StreamWriter(@"..\TicTacToeServer\ReplayData\" + username + @"\" + replayName + ".txt"))
+            {
+                streamWriter.WriteLine(turnofPlayer + "," + usedButtons);
+            }
+        }
+        if (File.Exists(@"..\TicTacToeServer\ReplayData\" + username + @"\" + replayName + ".txt"))
+        {
+
+            using (StreamWriter streamWriter = new StreamWriter(@"..\TicTacToeServer\ReplayData\" + username + @"\" + replayName + ".txt"))
+            {
+                streamWriter.WriteLine(turnofPlayer + "," + usedButtons);
+            }
+        }
 
     }
     #endregion
