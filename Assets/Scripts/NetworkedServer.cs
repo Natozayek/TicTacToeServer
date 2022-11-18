@@ -101,7 +101,6 @@ public class NetworkedServer : MonoBehaviour
                 }
                 else
                 {
-
                     SystemManager.Instance.LoginVerification(dataReceived[1], dataReceived[2], userID);
                 }
 
@@ -374,8 +373,8 @@ public class NetworkedServer : MonoBehaviour
                     {
                        if(userID== GameRooms[i].GetComponent<GameRoomManager>().Player1.GetComponent<PlayerInfo>().userID)
                         {
-                            notifyUser(9,userID, roomName + ",0");
-                            notifyUser(9, GameRooms[i].GetComponent<GameRoomManager>().Player2.GetComponent<PlayerInfo>().userID, roomName + ",1");
+                            notifyUser(9,userID, roomName + ",1");
+                            notifyUser(9, GameRooms[i].GetComponent<GameRoomManager>().Player2.GetComponent<PlayerInfo>().userID, roomName + ",0");
 
                             for (int j = 0; j < GameRooms[i].GetComponent<GameRoomManager>().spectators.Count; j++)
                             {
@@ -482,7 +481,6 @@ public class NetworkedServer : MonoBehaviour
             return false;
         }
     }
-
     public void  leaveRoomName(int userID, string roomName)
     {
         bool searchisDone = false;
@@ -491,19 +489,20 @@ public class NetworkedServer : MonoBehaviour
         while (!searchisDone)
         {
             Debug.Log("searching " + roomName.ToString());
-
              if(GameRooms[i].GetComponent<GameRoomManager>().roomName == roomName)
             {
-                Debug.Log("room found");
-
 
                 if (GameRooms[i].GetComponent<GameRoomManager>().Player1.GetComponent<PlayerInfo>().userID == userID)
                 {
                     searchisDone = true;
                     if (searchisDone)
                     {
-                        notifyUser(11, GameRooms[i].GetComponent<GameRoomManager>().Player2.GetComponent<PlayerInfo>().userID, "Player left the game");
-                        notifyUser(11, userID, "Player left the game");
+                      if(GameRooms[i].GetComponent<GameRoomManager>().Player2 != null)
+                        {
+                            notifyUser(11, GameRooms[i].GetComponent<GameRoomManager>().Player2.GetComponent<PlayerInfo>().userID, "Player left the game");
+                        }
+
+                        notifyUser(11, userID, "Player left ");
 
                         for (int j = 0; j < GameRooms[i].GetComponent<GameRoomManager>().spectators.Count; j++)
                         {
@@ -515,12 +514,11 @@ public class NetworkedServer : MonoBehaviour
 
 
                         if (isRoomFound)
-
                         {
                             GameRooms.RemoveAt(i);
                             GameObject roomObject = GameObject.Find(roomName.ToString());
                             Destroy(roomObject);
-                            Debug.Log("Room found and deleted");
+
                         }
 
                     }
@@ -530,7 +528,11 @@ public class NetworkedServer : MonoBehaviour
                     searchisDone = true;
                     if (searchisDone)
                     {
-                        notifyUser(11, GameRooms[i].GetComponent<GameRoomManager>().Player1.GetComponent<PlayerInfo>().userID, "Player left the game");
+                        if (GameRooms[i].GetComponent<GameRoomManager>().Player1 != null)
+                        {
+                            notifyUser(11, GameRooms[i].GetComponent<GameRoomManager>().Player1.GetComponent<PlayerInfo>().userID, "Player left the game");
+                        }
+                            
                         notifyUser(11, userID, "Player left the game");
 
                         for (int j = 0; j < GameRooms[i].GetComponent<GameRoomManager>().spectators.Count; j++)
@@ -545,17 +547,17 @@ public class NetworkedServer : MonoBehaviour
                             GameRooms.RemoveAt(i);
                             GameObject roomObject = GameObject.Find(roomName.ToString());
                             Destroy(roomObject);
-                            Debug.Log("Room found and deleted");
 
                         }
                     }
                 }
                 else if(GameRooms[i].GetComponent<GameRoomManager>().Player2 == null || GameRooms[i].GetComponent<GameRoomManager>().Player1 == null)
                 {
+                  
                     GameRooms.RemoveAt(i);
                     GameObject roomObject = GameObject.Find(roomName.ToString());
                     Destroy(roomObject);
-                    Debug.Log("Room found and deleted");
+                    
                 }
             }
            
@@ -565,7 +567,6 @@ public class NetworkedServer : MonoBehaviour
             }  
         }
     }
-
     private void LogOutUser(int userID)
     {
         bool searchisDone = false;
@@ -629,27 +630,20 @@ public class NetworkedServer : MonoBehaviour
     }
     private void SendReplayData(int userID, string replayName)
     {
-
         bool searchisDone = false;
         Debug.Log("SendReplayData");
         int i = 0;
         while (!searchisDone)
         {
-
             if (Players[i].GetComponent<PlayerInfo>().userID == userID)
             {
                 searchisDone = true;
-
-
                 string name = Players[i].GetComponent<PlayerInfo>().playerName.ToString();
-
                 DataManager.SendReplayData(name, userID, replayName);
-
 
             }
             else
             {
-                Debug.Log("i++");
                 i++;
             }
         }
@@ -658,8 +652,6 @@ public class NetworkedServer : MonoBehaviour
     {
         bool searchisDone = false;
         int i = 0;
-
-
         while (!searchisDone)
         {
             if (i == Players.Count)
@@ -673,13 +665,11 @@ public class NetworkedServer : MonoBehaviour
             else
             {
                 i++;
-
             }
         }
 
         if (searchisDone)
         {
-
            string playerName = Players[i].GetComponent<PlayerInfo>().gameObject.name;
             SystemManager.Instance.SavingDataInServer(playerName, PlayerInTurn, replayname, usedButtons);  
         }
@@ -740,8 +730,6 @@ public class NetworkedServer : MonoBehaviour
     {
         bool searchisDone = false;
         int i = 0;
-
-
         while (!searchisDone)
         {
             if (i == GameRooms.Count)
@@ -754,7 +742,6 @@ public class NetworkedServer : MonoBehaviour
                 if (searchisDone)
                 {
                     notifyUser(12, GameRooms[i].GetComponent<GameRoomManager>().Player2.GetComponent<PlayerInfo>().userID, message);
-
                 }
             }
             else if (GameRooms[i].GetComponent<GameRoomManager>().Player2.GetComponent<PlayerInfo>().userID == userID)
@@ -763,7 +750,6 @@ public class NetworkedServer : MonoBehaviour
                 if (searchisDone)
                 {
                     notifyUser(12, GameRooms[i].GetComponent<GameRoomManager>().Player1.GetComponent<PlayerInfo>().userID, message);
-
                 }
             }
             else
@@ -828,14 +814,14 @@ public class NetworkedServer : MonoBehaviour
                 msg = "13," + message;
                 break;
 
-            case 15: // Case spectator mode
+            case 15: // Get replay data
                 msg = "15," + message;
                 break;
 
-            case 16: // Case spectator mode
+            case 16: // Send replay data
                 msg = "16," + message;
                 break;
-            case 17: // Case spectator mode
+            case 17: // Send confirmation that data is already received
                 msg = "17," + message;
                 break;
         }
