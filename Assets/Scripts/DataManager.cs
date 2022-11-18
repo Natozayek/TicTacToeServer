@@ -90,6 +90,27 @@ public class DataManager : MonoBehaviour
         }
 
     }
+
+    static public void VerifyReplayData(string username, int userID)
+    {
+
+        if (Directory.Exists((@"..\TicTacToeServer\ReplayData\" + username )))
+        {
+
+            DirectoryInfo directoriy = new DirectoryInfo(@"..\TicTacToeServer\ReplayData\" + username);
+            foreach (var currentFile in directoriy.GetFiles("*.txt"))
+            {
+                string filename = "";
+                filename = currentFile.Name;
+                Debug.Log(filename);
+              
+            }           
+
+           
+        }
+
+    }
+
     #endregion
 
 

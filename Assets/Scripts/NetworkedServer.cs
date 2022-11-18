@@ -167,6 +167,13 @@ public class NetworkedServer : MonoBehaviour
                 LogOutUser(userID);
                 break;
 
+            case 12: // Player Log out - Deletes the player from the list of Players
+                GetReplayData(userID);
+                break;
+
+            case 13: //Send files to dropdown in client
+
+                break;
 
 
         }
@@ -174,9 +181,7 @@ public class NetworkedServer : MonoBehaviour
 
     }
 
-
-
-
+ 
 
 
     #endregion
@@ -594,6 +599,34 @@ public class NetworkedServer : MonoBehaviour
             }
         }
     }
+
+    private void GetReplayData(int userID)
+    {
+
+        bool searchisDone = false;
+        Debug.Log("GetReplayData");
+        int i = 0;
+        while (!searchisDone)
+        {
+
+            if (Players[i].GetComponent<PlayerInfo>().userID == userID)
+            {
+                searchisDone = true;
+            
+                
+                 string name = Players[i].GetComponent<PlayerInfo>().playerName.ToString();
+
+                DataManager.VerifyReplayData(name, userID);
+                Debug.Log("Verifying data");
+                
+            }
+            else
+            {
+                Debug.Log("i++");
+                i++;
+            }
+        }
+    }
     public void SaveReplay(int userID, int PlayerInTurn, string replayname, string usedButtons)
     {
         bool searchisDone = false;
@@ -766,6 +799,10 @@ public class NetworkedServer : MonoBehaviour
                 break;
             case 13: // Case spectator mode
                 msg = "13," + message;
+                break;
+
+            case 15: // Case spectator mode
+                msg = "15," + message;
                 break;
         }
         SendMessageToClient(msg, userID);
