@@ -172,7 +172,7 @@ public class NetworkedServer : MonoBehaviour
                 break;
 
             case 13: //Send files to dropdown in client
-
+                SendReplayData(userID, dataReceived[1]);
                 break;
 
 
@@ -627,6 +627,33 @@ public class NetworkedServer : MonoBehaviour
             }
         }
     }
+    private void SendReplayData(int userID, string replayName)
+    {
+
+        bool searchisDone = false;
+        Debug.Log("SendReplayData");
+        int i = 0;
+        while (!searchisDone)
+        {
+
+            if (Players[i].GetComponent<PlayerInfo>().userID == userID)
+            {
+                searchisDone = true;
+
+
+                string name = Players[i].GetComponent<PlayerInfo>().playerName.ToString();
+
+                DataManager.SendReplayData(name, userID, replayName);
+
+
+            }
+            else
+            {
+                Debug.Log("i++");
+                i++;
+            }
+        }
+    }
     public void SaveReplay(int userID, int PlayerInTurn, string replayname, string usedButtons)
     {
         bool searchisDone = false;
@@ -803,6 +830,13 @@ public class NetworkedServer : MonoBehaviour
 
             case 15: // Case spectator mode
                 msg = "15," + message;
+                break;
+
+            case 16: // Case spectator mode
+                msg = "16," + message;
+                break;
+            case 17: // Case spectator mode
+                msg = "17," + message;
                 break;
         }
         SendMessageToClient(msg, userID);

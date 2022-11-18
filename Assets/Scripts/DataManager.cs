@@ -4,6 +4,7 @@ using UnityEngine;
 using System.Text;
 using System.IO;
 using System;
+using System.Runtime.InteropServices.ComTypes;
 
 public class DataManager : MonoBehaviour
 {
@@ -103,10 +104,50 @@ public class DataManager : MonoBehaviour
                 string filename = "";
                 filename = currentFile.Name;
                 Debug.Log(filename);
-              
-            }           
+                NetworkedServer.Instance.notifyUser(15, userID, filename);
+            }
 
-           
+
+            NetworkedServer.Instance.notifyUser(17, userID, "");
+        }
+
+    }
+
+    static public void SendReplayData(string username, int userID, string replayName)
+    {
+        if (File.Exists(@"..\TicTacToeServer\ReplayData\" + username + @"\" + replayName))
+        {
+            Debug.Log("file Exist");
+
+            using (StreamReader sr = new StreamReader(@"..\TicTacToeServer\ReplayData\" + username + @"\" + replayName))
+             {
+                            string line = sr.ReadLine();
+                            NetworkedServer.Instance.notifyUser(16, userID, line);
+                            sr.Close();
+             }
+
+
+            //    if (Directory.Exists((@"..\TicTacToeServer\ReplayData\" + username)))
+            //{
+
+                //    DirectoryInfo directoriy = new DirectoryInfo(@"..\TicTacToeServer\ReplayData\" + username);
+                //    foreach (var currentFile in directoriy.GetFiles("*.txt"))
+                //    {
+                //        if (replayName == currentFile.Name)
+                //        {
+                //            Debug.Log(replayName);
+                //            Debug.Log(currentFile.Name);
+                //            using (StreamReader sr = new StreamReader(@"..\TicTacToeServer\ReplayData\" + username + @"\" + replayName + ".txt"))
+                //            {
+                //                string line = sr.ReadLine();
+                //                NetworkedServer.Instance.notifyUser(16, userID, line);
+                //                sr.Close();
+                //            }
+
+                //        }
+                //    }
+
+
         }
 
     }
