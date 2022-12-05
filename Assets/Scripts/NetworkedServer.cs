@@ -109,7 +109,7 @@ public class NetworkedServer : MonoBehaviour
 
 
             case 1://CREATE ACCOUNT
-                SystemManager.Instance.createAccount(dataReceived[1], dataReceived[2], userID);
+                SystemManager.Instance.createAccount(dataReceived[1], dataReceived[2], userID);//Username, password, id
                 break;
 
             case 2://Create GameRoom or Join GameRoom
@@ -118,7 +118,7 @@ public class NetworkedServer : MonoBehaviour
                 break;
 
             case 3://Game is Ready
-                StartMatch(userID, dataReceived[1]);
+                StartMatch(userID, dataReceived[1]);//userID,roomName
                 break;
 
             case 4: // PlayerMove
@@ -136,17 +136,16 @@ public class NetworkedServer : MonoBehaviour
                 break;
 
             case 5: //Reset game
-                ReMatch(userID, dataReceived[1]);
+                ReMatch(userID, dataReceived[1]);//userId, roomName
                 break;
 
 
             case 6: //Leave game notification
-                Debug.Log("Find room by name and delete it");
-                leaveRoomName(dataReceived[1]);
+                leaveRoomName(dataReceived[1]);//Room Name
                 break;
 
             case 7://Message received in the server now send it to X player to show it in their screen
-                displayMessage(userID, dataReceived[1]);
+                displayMessage(userID, dataReceived[1]);// userId, message
                 break;
 
             case 8://Save replay data - Username (for folder name ), UserID, turnofPlayer, replayName, usedButtons 
@@ -392,7 +391,9 @@ public class NetworkedServer : MonoBehaviour
 
                     }
 
+                    usedButtons = "";
                 }
+
             }
             else
             {
@@ -766,63 +767,67 @@ public class NetworkedServer : MonoBehaviour
         {
 
             case 0:
-                msg = "0";// ACCESS GRANTED - GOOD USERNAME AND PASSWORD
+                msg = ServerToClientSignifiers.AcessGranted.ToString();// ACCESS GRANTED - GOOD USERNAME AND PASSWORD
                 break;
 
             case 1:
-                msg = "1"; // ERROR-  Account name already exist
+                msg = ServerToClientSignifiers.AccountNameAlreadyExist.ToString(); // ERROR-  Account name already exist
                 break;
 
             case 2:
-                msg = "2"; // ACCESS DENIED - Wrong username
+                msg = ServerToClientSignifiers.WrongUsername.ToString(); // ACCESS DENIED - Wrong username
                 break;
             case 3:// ACCESS DENIED -Wrong password
-                msg = "3";
+
+                msg = ServerToClientSignifiers.WrongPassword.ToString();
                 break;
             case 4:
-                msg = "4," + message; //Account created successfully 
+                msg = ServerToClientSignifiers.AccountCreatedSuccessfully + "," + message; //Account created successfully 
                 break;
             case 5://GameRoom Creation/ Joining Game Room
-                msg = "5," + message;//Nameofroom;
+                msg = ServerToClientSignifiers.RoomCreated + "," + message;//Nameofroom;
                 break;
             case 6: // Joining Game Room
-                msg = "6," + message;
+                msg = ServerToClientSignifiers.JoinRoomX + "," + message;
                 break;
             case 7://Start Game
-                msg = "7," + message;
+                msg =  ServerToClientSignifiers.StartMatch + "," + message;
                 break;
 
             case 8: // SEND MOVE TO OTHER PLAYER
-                msg = "8," + message;
+                msg =  ServerToClientSignifiers.PlayerXMadeAMove +"," + message;
                 break;
             
-            case 9: // SEND MOVE TO OTHER PLAYER
-                msg = "9," + message;
+            case 9: //RESTART MATCH
+                msg = ServerToClientSignifiers.RestartMatch + "," + message;
                 break;
             case 10: // Error - Player already connected
-                msg = "10," + message;
+                msg = ServerToClientSignifiers.UserAlreadyLogged + "," + message;
                 break;
 
             case 11: // Error - Player left the game room
-                msg = "11," + message;
+                msg = ServerToClientSignifiers.LeaveGameRoom + "," + message;
                 break;
 
             case 12: //Message to display
-                msg = "12," + message;
+                msg =  ServerToClientSignifiers.DisplayMessageInScreen + "," + message;
                 break;
             case 13: // Case spectator mode
-                msg = "13," + message;
+                msg = ServerToClientSignifiers.SetSpectatorMode + "," + message;
+                break;
+            case 14:
+                msg = ServerToClientSignifiers.LeaveGameRoomLobby +"," + message;
                 break;
 
             case 15: // Get replay data
-                msg = "15," + message;
+                msg = ServerToClientSignifiers.GetReplayData + "," + message;
                 break;
 
             case 16: // Send replay data
-                msg = "16," + message;
+                msg = ServerToClientSignifiers.ReplayModeOn + "," + message;
                 break;
             case 17: // Send confirmation that data is already received
-                msg = "17," + message;
+                msg = ServerToClientSignifiers.DataConfirmation + "," + message;
                 break;
         }
         SendMessageToClient(msg, userID);
@@ -832,4 +837,46 @@ public class NetworkedServer : MonoBehaviour
 
     #endregion
     
+}
+static public class ClientToServerSignifiers
+{
+    static public int AccessVerification = 0;
+    static public int CreateNewAccount = 1;
+    static public int CreateORJoinGameRoom = 2;
+    static public int GameisReady = 3;
+    static public int playerMoved = 4;
+    static public int RestartMatch = 5;
+    static public int LeaveGameNotification = 6;
+    static public int SendMessageToOtherPlayer = 7;
+    static public int SaveReplayData = 8;
+    static public int SpectateRoom = 9;
+    static public int LogOut = 11;
+    static public int WatchReplay = 12;
+    static public int PlayReplay = 13;
+    static public int LeaveGameRoomLobby = 14;
+}
+
+static public class ServerToClientSignifiers
+{
+
+    static public int AcessGranted = 0;
+    static public int AccountNameAlreadyExist = 1;
+    static public int WrongUsername = 2;
+    static public int WrongPassword = 3;
+    static public int AccountCreatedSuccessfully = 4;
+    static public int RoomCreated = 5;
+    static public int JoinRoomX = 6;
+    static public int StartMatch = 7;
+    static public int PlayerXMadeAMove = 8;
+    static public int RestartMatch = 9;
+    static public int UserAlreadyLogged = 10;
+    static public int LeaveGameRoom = 11;
+    static public int DisplayMessageInScreen = 12;
+    static public int SetSpectatorMode = 13;
+    static public int GetReplayData = 15;
+    static public int ReplayModeOn = 16;
+    static public int DataConfirmation = 17;
+    static public int LeaveGameRoomLobby = 14;
+
+
 }
