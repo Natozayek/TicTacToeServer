@@ -16,17 +16,17 @@ public class DataManager : MonoBehaviour
     #region Save Data for username creation/ Verify Data to handle loging access
     static public void SaveData(string username, string password)
     {
-            using (StreamWriter sw = File.AppendText(@"..\TicTacToeServer\Users\"+ username + ".txt"))
+            using (StreamWriter sw = File.AppendText(@"..\TicTacToeGameServer\Users\"+ username + ".txt"))
             {
                 sw.WriteLine(username + "," + password);
             }
     }
     static public void VerifyData(string username, string password, int userID)
     {
-        if (File.Exists(@"..\TicTacToeServer\Users\" + username+ ".txt"))
+        if (File.Exists(@"..\TicTacToeGameServer\Users\" + username+ ".txt"))
         {
             Debug.Log("file Exist");
-            using (StreamReader sr = new StreamReader(@"..\TicTacToeServer\Users\" +username + ".txt"))
+            using (StreamReader sr = new StreamReader(@"..\TicTacToeGameServer\Users\" +username + ".txt"))
             {
                 string line = sr.ReadLine();
                 string[] lineData = line.Split(',');
@@ -56,20 +56,20 @@ public class DataManager : MonoBehaviour
 
     static public void SaveReplayData(string username, int turnofPlayer, string replayName, string usedButtons)
     {
-        if (!File.Exists(@"..\TicTacToeServer\ReplayData\" + username + @"\" + replayName + ".txt"))
+        if (!File.Exists(@"..\TicTacToeGameServer\ReplayData\" + username + @"\" + replayName + ".txt"))
         {
 
-            Directory.CreateDirectory(@"..\TicTacToeServer\ReplayData\" + username);
+            Directory.CreateDirectory(@"..\TicTacToeGameServer\ReplayData\" + username);
 
-            using (StreamWriter streamWriter = new StreamWriter(@"..\TicTacToeServer\ReplayData\" + username + @"\" + replayName + ".txt"))
+            using (StreamWriter streamWriter = new StreamWriter(@"..\TicTacToeGameServer\ReplayData\" + username + @"\" + replayName + ".txt"))
             {
                 streamWriter.WriteLine(turnofPlayer + "," + usedButtons);
             }
         }
-        if (File.Exists(@"..\TicTacToeServer\ReplayData\" + username + @"\" + replayName + ".txt"))
+        if (File.Exists(@"..\TicTacToeGameServer\ReplayData\" + username + @"\" + replayName + ".txt"))
         {
 
-            using (StreamWriter streamWriter = new StreamWriter(@"..\TicTacToeServer\ReplayData\" + username + @"\" + replayName + ".txt"))
+            using (StreamWriter streamWriter = new StreamWriter(@"..\TicTacToeGameServer\ReplayData\" + username + @"\" + replayName + ".txt"))
             {
                 streamWriter.WriteLine(turnofPlayer + "," + usedButtons);
             }
@@ -78,10 +78,10 @@ public class DataManager : MonoBehaviour
 
     static public void VerifyReplayData(string username, int userID)
     {
-        if (Directory.Exists((@"..\TicTacToeServer\ReplayData\" + username )))
+        if (Directory.Exists((@"..\TicTacToeGameServer\ReplayData\" + username )))
         {
 
-            DirectoryInfo directoriy = new DirectoryInfo(@"..\TicTacToeServer\ReplayData\" + username);
+            DirectoryInfo directoriy = new DirectoryInfo(@"..\TicTacToeGameServer\ReplayData\" + username);
             foreach (var currentFile in directoriy.GetFiles("*.txt"))
             {
                 string filename = "";
@@ -96,11 +96,11 @@ public class DataManager : MonoBehaviour
 
     static public void SendReplayData(string username, int userID, string replayName)
     {
-        if (File.Exists(@"..\TicTacToeServer\ReplayData\" + username + @"\" + replayName))
+        if (File.Exists(@"..\TicTacToeGameServer\ReplayData\" + username + @"\" + replayName))
         {
             Debug.Log("file Exist");
 
-            using (StreamReader sr = new StreamReader(@"..\TicTacToeServer\ReplayData\" + username + @"\" + replayName))
+            using (StreamReader sr = new StreamReader(@"..\TicTacToeGameServer\ReplayData\" + username + @"\" + replayName))
              {
                             string line = sr.ReadLine();
                             NetworkedServer.Instance.notifyUser(16, userID, line);

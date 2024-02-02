@@ -57,14 +57,14 @@ public class NetworkedServer : MonoBehaviour
             case NetworkEventType.Nothing:
                 break;
             case NetworkEventType.ConnectEvent:
-                Debug.Log("Connection, " + recConnectionID);
+                Debug.Log("Connecting, Player ID: " + recConnectionID + " attempting to establish network event.");
                 break;
             case NetworkEventType.DataEvent:
                 string msg = Encoding.Unicode.GetString(recBuffer, 0, dataSize);
                 ProcessRecievedMsg(msg, recConnectionID);
                 break;
             case NetworkEventType.DisconnectEvent:
-                Debug.Log("Disconnection, " + recConnectionID);
+                Debug.Log("Client ID : " + recConnectionID + " disconnected.");
                 break;
         }
 
