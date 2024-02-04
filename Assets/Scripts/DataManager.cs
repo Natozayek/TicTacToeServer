@@ -23,35 +23,82 @@ public class DataManager : MonoBehaviour
     }
     static public void VerifyData(string username, string password, int userID)
     {
-        if (File.Exists(@"..\TicTacToeGameServer\Users\" + username+ ".txt"))
+        // Construct the file path based on the username
+        string filePath = Path.Combine(@"..\TicTacToeGameServer\Users", $"{username}.txt");
+        try
         {
-            Debug.Log("file Exist");
-            using (StreamReader sr = new StreamReader(@"..\TicTacToeGameServer\Users\" +username + ".txt"))
+            // Check if the file exists
+            if (File.Exists(filePath))
             {
-                string line = sr.ReadLine();
-                string[] lineData = line.Split(',');
-                
+                Debug.Log("File Exists");
 
-                if (lineData[0] == username && lineData[1] == password)
+                // Read the content of the file
+                using (StreamReader sr = new StreamReader(filePath))
                 {
-                    Debug.Log("True username & passoword");
-                    NetworkedServer.Instance.CreatePlayer(lineData[0], userID);
-                    NetworkedServer.Instance.notifyUser(0, userID, "AccesGranted"); // ACCESS GRANTED 
+                    // Read the first line of the file
+                    string line = sr.ReadLine();
 
+                    // Split the line into an array of strings using ',' as the delimiter,
+                    // and remove any empty entries from the result.
+                    string[] lineData = line.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+
+                    // Check if the split resulted in two non-empty parts
+                    if (lineData.Length == 2 && lineData[0] == username && lineData[1] == password)
+                    {
+                        Debug.Log("Correct username & password");
+                        NetworkedServer.Instance.CreatePlayer(lineData[0], userID);
+                        NetworkedServer.Instance.notifyUser(ServerToClientSignifiers.AcessGranted, userID, "Access Granted");
+                    }
+                    else
+                    {
+                        Debug.Log("Access Denied - Wrong Password");
+                        NetworkedServer.Instance.notifyUser(ServerToClientSignifiers.WrongPassword, userID, "Access Denied - Wrong password");
+                    }
                 }
-                else
-                {
-                    Debug.Log("WrongPassword"); // ACCESS DENIED -Wrong password
-                    NetworkedServer.Instance.notifyUser(3, userID, " AccesDenied -Wrong password");
-                }
-                sr.Close();
+            }
+            else
+            {
+                Debug.Log("Access Denied - Wrong username");
+                NetworkedServer.Instance.notifyUser(ServerToClientSignifiers.WrongUsername, userID, "Access Denied - Wrong username");
             }
         }
-        else
+        catch (Exception ex)
         {
-            //AccesDenied -Wrong username
-            NetworkedServer.Instance.notifyUser(2, userID, " AccesDenied -Wrong username");
+            // Handle any exceptions that might occur during file operations
+            Debug.LogError($"Error while verifying user data: {ex.Message}");
         }
+        #region OLD CODE
+        //if (File.Exists(@"..\TicTacToeGameServer\Users\" + username+ ".txt"))
+        //{
+        //    Debug.Log("file Exist");
+        //    using (StreamReader sr = new StreamReader(@"..\TicTacToeGameServer\Users\" +username + ".txt"))
+        //    {
+        //        string line = sr.ReadLine();
+        //        string[] lineData = line.Split(',');
+
+
+        //        if (lineData[0] == username && lineData[1] == password)
+        //        {
+        //            Debug.Log("True username & passoword");
+        //            NetworkedServer.Instance.CreatePlayer(lineData[0], userID);
+        //            NetworkedServer.Instance.notifyUser(0, userID, "AccesGranted"); // ACCESS GRANTED 
+
+        //        }
+        //        else
+        //        {
+        //            Debug.Log("WrongPassword"); // ACCESS DENIED -Wrong password
+        //            NetworkedServer.Instance.notifyUser(3, userID, " AccesDenied -Wrong password");
+        //        }
+        //        sr.Close();
+        //    }
+        //}
+        //else
+        //{
+        //    //AccesDenied -Wrong username
+        //    NetworkedServer.Instance.notifyUser(2, userID, " AccesDenied -Wrong username");
+        //}
+
+        #endregion
     }
 
     static public void SaveReplayData(string username, int turnofPlayer, string replayName, string usedButtons)

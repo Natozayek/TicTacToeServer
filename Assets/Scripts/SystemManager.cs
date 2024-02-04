@@ -26,15 +26,47 @@ public class SystemManager : MonoBehaviour
     #region Functions to handle CreateAccount or data serialization/ Loging verification accessing DataManager to Verify the username and password
     public void createAccount(string username, string password, int id)
     {
-        if (File.Exists(@"..\TicTacToeServer\Users\" + username + ".txt"))
+        try
         {
-            NetworkedServer.Instance.notifyUser(1, id, "");// if exist, used name is already been used by another player
+            string filePath = Path.Combine(@"..\TicTacToeServer\Users", $"{username}.txt");
+
+            if (File.Exists(filePath))
+            {
+                Debug.Log($"Account with username '{username}' already exists");
+                NetworkedServer.Instance.notifyUser(ServerToClientSignifiers.AccountNameAlreadyExist, id, "Account name already exists");
+            }
+            else
+            {
+                if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
+                {
+                    Debug.Log("Invalid username or password");
+                    NetworkedServer.Instance.notifyUser(ServerToClientSignifiers.InvalidAccountInformation, id, "Invalid username or password");
+                    return;
+                }
+
+                DataManager.SaveData(username, password);
+                Debug.Log($"User account '{username}' created successfully");
+                NetworkedServer.Instance.notifyUser(ServerToClientSignifiers.AccountCreatedSuccessfully, id, "Account created successfully");
+            }
         }
-        else
+        catch (Exception ex)
         {
-            DataManager.SaveData(username, password);// Save Username and password + notification of Account created
-            NetworkedServer.Instance.notifyUser(4, id, "");
+            Debug.LogError($"Error while creating user account: {ex.Message}");
+            // Handle the exception or log accordingly
         }
+
+        #region OLD CODE
+
+        //if (File.Exists(@"..\TicTacToeServer\Users\" + username + ".txt"))
+        //{
+        //    NetworkedServer.Instance.notifyUser(ServerToClientSignifiers.AccountNameAlreadyExist, id, "");
+        //}
+        //else
+        //{
+        //    DataManager.SaveData(username, password);// Save Username and password + notification of Account created
+        //    NetworkedServer.Instance.notifyUser(ServerToClientSignifiers.AccountCreatedSuccessfully, id, "");
+        //}
+        #endregion
 
     }
     public void LoginVerification(string username, string password, int userID)

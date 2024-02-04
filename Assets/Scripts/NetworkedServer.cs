@@ -87,29 +87,31 @@ public class NetworkedServer : MonoBehaviour
     {
 
         string[] dataReceived = msg.Split(',');
-        switch (int.Parse(dataReceived[0]))
+        int messageType = int.Parse(dataReceived[0]);
+        switch (messageType)
         {
-            case 0: //LOGIN VERIFICATION
-                bool usernameLoggedin = false;
-
-               usernameLoggedin =  FindPlayerByName(userID, dataReceived[1]);
-
+            case ClientToServerSignifiers.LoggingVerification:
+              
+                Debug.Log("Verifying user login ");
+                string username = dataReceived[1];
+                string password = dataReceived[2];
+                bool usernameLoggedin = FindPlayerByName(userID, username);
 
                 if (usernameLoggedin)
                 {
-                    NetworkedServer.Instance.notifyUser(10, userID, "AccesDenied"); // ACCESS Denied 
+                    NetworkedServer.Instance.notifyUser(ServerToClientSignifiers.UserAlreadyLogged, userID, "AccesDenied");
                     break;
                 }
                 else
                 {
-                    SystemManager.Instance.LoginVerification(dataReceived[1], dataReceived[2], userID);
+                    SystemManager.Instance.LoginVerification(username, password, userID);
                 }
-
                 break;
 
-
-            case 1://CREATE ACCOUNT
-                SystemManager.Instance.createAccount(dataReceived[1], dataReceived[2], userID);//Username, password, id
+            case ClientToServerSignifiers.CreateNewAccount:
+                string newUsername = dataReceived[1];
+                string newPassword = dataReceived[2];
+                SystemManager.Instance.createAccount(newUsername, newPassword, userID);//Username, password, id
                 break;
 
             case 2://Create GameRoom or Join GameRoom
@@ -304,7 +306,7 @@ public class NetworkedServer : MonoBehaviour
 
     
     }
-        private void StartMatch(int userID, string roomName)
+    private void StartMatch(int userID, string roomName)
     {
 
         bool searchisDone = false;
@@ -441,7 +443,7 @@ public class NetworkedServer : MonoBehaviour
             return -1;
         }
     }
-    public bool FindPlayerByName(int userID, string name)
+    public bool FindPlayerByName(int userID, string username)
     {
         bool searchisDone = false;
         bool isPlayerFound = false;
@@ -829,6 +831,9 @@ public class NetworkedServer : MonoBehaviour
             case 17: // Send confirmation that data is already received
                 msg = ServerToClientSignifiers.DataConfirmation + "," + message;
                 break;
+            case 20: 
+                msg = ServerToClientSignifiers.InvalidAccountInformation + "," + message;
+                break;
         }
         SendMessageToClient(msg, userID);
     }
@@ -840,43 +845,43 @@ public class NetworkedServer : MonoBehaviour
 }
 static public class ClientToServerSignifiers
 {
-    static public int AccessVerification = 0;
-    static public int CreateNewAccount = 1;
-    static public int CreateORJoinGameRoom = 2;
-    static public int GameisReady = 3;
-    static public int playerMoved = 4;
-    static public int RestartMatch = 5;
-    static public int LeaveGameNotification = 6;
-    static public int SendMessageToOtherPlayer = 7;
-    static public int SaveReplayData = 8;
-    static public int SpectateRoom = 9;
-    static public int LogOut = 11;
-    static public int WatchReplay = 12;
-    static public int PlayReplay = 13;
-    static public int LeaveGameRoomLobby = 14;
+     public const int LoggingVerification = 0;
+     public const int CreateNewAccount = 1;
+     public const int CreateORJoinGameRoom = 2;
+     public const int GameisReady = 3;
+     public const int playerMoved = 4;
+     public const int RestartMatch = 5;
+     public const int LeaveGameNotification = 6;
+     public const int SendMessageToOtherPlayer = 7;
+     public const int SaveReplayData = 8;
+     public const int SpectateRoom = 9;
+     public const int LogOut = 11;
+     public const int WatchReplay = 12;
+     public const int PlayReplay = 13;
+     public const int LeaveGameRoomLobby = 14;
 }
 
 static public class ServerToClientSignifiers
 {
 
-    static public int AcessGranted = 0;
-    static public int AccountNameAlreadyExist = 1;
-    static public int WrongUsername = 2;
-    static public int WrongPassword = 3;
-    static public int AccountCreatedSuccessfully = 4;
-    static public int RoomCreated = 5;
-    static public int JoinRoomX = 6;
-    static public int StartMatch = 7;
-    static public int PlayerXMadeAMove = 8;
-    static public int RestartMatch = 9;
-    static public int UserAlreadyLogged = 10;
-    static public int LeaveGameRoom = 11;
-    static public int DisplayMessageInScreen = 12;
-    static public int SetSpectatorMode = 13;
-    static public int GetReplayData = 15;
-    static public int ReplayModeOn = 16;
-    static public int DataConfirmation = 17;
-    static public int LeaveGameRoomLobby = 14;
-
+     public const int AcessGranted = 0;
+     public const int AccountNameAlreadyExist = 1;
+     public const int WrongUsername = 2;
+     public const int WrongPassword = 3;
+     public const int AccountCreatedSuccessfully = 4;
+     public const int RoomCreated = 5;
+     public const int JoinRoomX = 6;
+     public const int StartMatch = 7;
+     public const int PlayerXMadeAMove = 8;
+     public const int RestartMatch = 9;
+     public const int UserAlreadyLogged = 10;
+     public const int LeaveGameRoom = 11;
+     public const int DisplayMessageInScreen = 12;
+     public const int SetSpectatorMode = 13;
+     public const int GetReplayData = 15;
+     public const int ReplayModeOn = 16;
+     public const int DataConfirmation = 17;
+     public const int LeaveGameRoomLobby = 14;
+     public const int InvalidAccountInformation = 20;
 
 }
