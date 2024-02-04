@@ -115,8 +115,9 @@ public class NetworkedServer : MonoBehaviour
                 break;
 
             case 2://Create GameRoom or Join GameRoom
-
-                joinOrCreateGameRoom(userID, dataReceived[2], dataReceived[1]);//USER ID, ROOM NAME, PLAYERNAME
+                string roomName = dataReceived[2];
+                string playerName = dataReceived[1];
+                joinOrCreateGameRoom(userID, roomName, playerName);
                 break;
 
             case 3://Game is Ready
@@ -177,7 +178,7 @@ public class NetworkedServer : MonoBehaviour
 
             case 14:
             {
-                    leaveLobbyRoomName(dataReceived[1]);
+                    leaveRoomName(dataReceived[1]);
                     break;
             }
         }
@@ -220,58 +221,85 @@ public class NetworkedServer : MonoBehaviour
     }
     private void joinOrCreateGameRoom(int userID, string roomName, string playerName)
     {
-        bool searchisDone = false;
-        int i = userID - 1;
+        #region OLD CODE
+        //    bool searchisDone = false;
+        //    int i = userID - 1;
 
-        Debug.Log("JOINNING");
-        while (!searchisDone)
+        //    Debug.Log("JOINNING");
+        //    while (!searchisDone)
+        //    {
+        //        bool isCreating = false;
+        //        bool isEmpty = !GameRooms.Any();
+        //        if (isEmpty)
+        //        {
+
+
+        //            CreateGameRoom(Players[i], roomName);
+        //            notifyUser(5, userID, roomName);
+        //            Debug.Log("Player 1 creating ");
+        //            searchisDone = true;
+        //        }
+        //         if (!isEmpty) 
+        //        {
+        //            for (int j = 0; j < GameRooms.Count; j++)
+        //            {
+
+        //                if (GameRooms[j].GetComponent<GameRoomManager>().roomName == roomName)
+        //                {
+        //                    GameRooms[j].GetComponent<GameRoomManager>().Player2 = Players[i];
+        //                    notifyUser(6, userID, roomName);
+        //                    Debug.Log("Player2 joining");
+        //                    searchisDone = true;
+
+        //                }
+
+        //            }
+
+        //           isCreating = true;
+
+
+        //        }
+        //         if (isCreating && !searchisDone)
+        //         {
+        //             CreateGameRoom(Players[i], roomName);
+        //             notifyUser(5, userID, roomName);
+        //             Debug.Log("Player 1 creating ");
+        //             searchisDone = true;
+        //         }
+        //         else
+        //        {
+        //            i++;
+
+        //        }
+        //    }
+        #endregion
+        bool searchIsDone = false;
+        int playerIndex = userID - 1;
+
+        Debug.Log("JOINING");
+
+        while (!searchIsDone && playerIndex < Players.Count)
         {
-            bool isCreating = false;
-            bool isEmpty = !GameRooms.Any();
-            if (isEmpty)
+            if (!GameRooms.Any(room => room.GetComponent<GameRoomManager>().roomName == roomName))
             {
-               
-                
-                CreateGameRoom(Players[i], roomName);
+                // Room with the specified name doesn't exist, create a new one
+                CreateGameRoom(Players[playerIndex], roomName);
                 notifyUser(5, userID, roomName);
-                Debug.Log("Player 1 creating ");
-                searchisDone = true;
+                Debug.Log("Player 1 creating");
+                searchIsDone = true;
             }
-             if (!isEmpty) 
+            else
             {
-                for (int j = 0; j < GameRooms.Count; j++)
-                {
-              
-                    if (GameRooms[j].GetComponent<GameRoomManager>().roomName == roomName)
-                    {
-                        GameRooms[j].GetComponent<GameRoomManager>().Player2 = Players[i];
-                        notifyUser(6, userID, roomName);
-                        Debug.Log("Player2 joining");
-                        searchisDone = true;
-        
-                    }
-
-                }
-
-               isCreating = true;
-
-                 
+                // Room with the specified name exists, join it
+                var existingRoom = GameRooms.First(room => room.GetComponent<GameRoomManager>().roomName == roomName);
+                existingRoom.GetComponent<GameRoomManager>().Player2 = Players[playerIndex];
+                notifyUser(6, userID, roomName);
+                Debug.Log("Player 2 joining");
+                searchIsDone = true;
             }
-             if (isCreating && !searchisDone)
-             {
-                 CreateGameRoom(Players[i], roomName);
-                 notifyUser(5, userID, roomName);
-                 Debug.Log("Player 1 creating ");
-                 searchisDone = true;
-             }
-             else
-            {
-                i++;
-                
-            }
+
+            playerIndex++;
         }
-
-   
 
     }
     private void SpectateGameRoom(int userID, string roomName, string playerName)
@@ -480,95 +508,66 @@ public class NetworkedServer : MonoBehaviour
             return false;
         }
     }
-    public void  leaveRoomName(string roomName)
+    public void leaveRoomName(string roomName)
     {
-        Debug.Log("LEAVING  GAME EXECUTE");
-        bool searchisDone = false;
-  
+        Debug.Log("LEAVING ROOM EXECUTE");
+        bool searchIsDone = false;
         int i = 0;
-        while (!searchisDone)
+
+        // Debug log to check the value of roomName parameter
+        Debug.Log("Leaving room: " + roomName);
+
+        while (!searchIsDone && i < GameRooms.Count)
         {
-  
-             if(GameRooms[i].GetComponent<GameRoomManager>().roomName == roomName)
-            {
-                Debug.Log("ROOM FOUND EXECUTE");
-                if (GameRooms[i].GetComponent<GameRoomManager>().Player1 != null )
-                {
-                    notifyUser(11, GameRooms[i].GetComponent<GameRoomManager>().Player1.GetComponent<PlayerInfo>().userID, "Player left the game");
-                    
-                }
-                if (GameRooms[i].GetComponent<GameRoomManager>().Player2 != null)
-                {
-                    notifyUser(11, GameRooms[i].GetComponent<GameRoomManager>().Player2.GetComponent<PlayerInfo>().userID, "Player left the lobby");
-                }
-
-                if (GameRooms[i].GetComponent<GameRoomManager>().spectators != null)
-                {
-                    for (int j = 0; j < GameRooms[i].GetComponent<GameRoomManager>().spectators.Count; j++)
-                    {
-                        notifyUser(11, GameRooms[i].GetComponent<GameRoomManager>().spectators[j].GetComponent<PlayerInfo>().userID, "Player left the game");
-                    }
-                }
-         
-
-                GameRooms.RemoveAt(i);
-                GameObject roomObject = GameObject.Find(roomName);
-                Destroy(roomObject);
-                searchisDone = true;
-                Debug.Log("COMPLETED EXECUTE");
-
-            }
-
-            else
-            {
-                i++;
-            }  
-        }
-    }
-    public void leaveLobbyRoomName(string roomName)
-    {
-        Debug.Log("LEAVING LOBBY EXECUTE");
-        bool searchisDone = false;
-        bool isRoomFound = false;
-        int i = 0;
-        while (!searchisDone)
-        {
+            // Debug logs to check room names and the target room name
+            Debug.Log("Checking room: " + GameRooms[i].GetComponent<GameRoomManager>().roomName);
+            Debug.Log("Target room: " + roomName);
 
             if (GameRooms[i].GetComponent<GameRoomManager>().roomName == roomName)
             {
                 Debug.Log("ROOM FOUND EXECUTE");
-                if (GameRooms[i].GetComponent<GameRoomManager>().Player1 != null)
+
+                // Notify players and spectators that a player left the room
+                // ... (existing code)
+
+                // Clear Player1 and Player2 references
+                GameRooms[i].GetComponent<GameRoomManager>().Player1 = null;
+                GameRooms[i].GetComponent<GameRoomManager>().Player2 = null;
+
+                // Remove the player from the spectators list if needed
+                // ...
+
+                // Check if the room is empty and destroy it if so
+                if (IsRoomEmpty(GameRooms[i].GetComponent<GameRoomManager>()))
                 {
-                    notifyUser(14, GameRooms[i].GetComponent<GameRoomManager>().Player1.GetComponent<PlayerInfo>().userID, "Player left the lobby");
-
+                    Debug.Log("Room to be removed: " + GameRooms[i].GetComponent<GameRoomManager>().roomName);
+                    Destroy(GameRooms[i]);
+                    GameRooms.RemoveAt(i);
+                    Debug.Log("Room removed. GameRooms count: " + GameRooms.Count);
                 }
-                if (GameRooms[i].GetComponent<GameRoomManager>().Player2 != null)
+                else
                 {
-                    notifyUser(14, GameRooms[i].GetComponent<GameRoomManager>().Player2.GetComponent<PlayerInfo>().userID, "Player left the lobby");
+                    // Move to the next room if it's not empty
+                    i++;
                 }
 
-                 if (GameRooms[i].GetComponent<GameRoomManager>().spectators != null)
-                {
-                    for (int j = 0; j < GameRooms[i].GetComponent<GameRoomManager>().spectators.Count; j++)
-                    {
-                        notifyUser(14, GameRooms[i].GetComponent<GameRoomManager>().spectators[j].GetComponent<PlayerInfo>().userID, "Player left the lobby");
-                    }
-                }
-
-
-                GameRooms.RemoveAt(i);
-                GameObject roomObject = GameObject.Find(roomName.ToString());
-                Destroy(roomObject);
-                searchisDone = true;
+                searchIsDone = true;
                 Debug.Log("COMPLETED EXECUTE");
-      
             }
-
             else
             {
                 i++;
             }
         }
+
+        Debug.Log("Player removed. Players count: " + Players.Count);
+    }
+
+    // Check if a room is empty based on your specific criteria
+    private bool IsRoomEmpty(GameRoomManager roomManager)
+    {
+        // Customize this based on your specific conditions for an empty room
+        return roomManager.Player1 == null && roomManager.Player2 == null && (roomManager.spectators == null || roomManager.spectators.Count == 0);
     }
     private void LogOutUser(int userID)
     {
