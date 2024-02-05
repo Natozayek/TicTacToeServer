@@ -125,20 +125,53 @@ public class DataManager : MonoBehaviour
 
     static public void VerifyReplayData(string username, int userID)
     {
-        if (Directory.Exists((@"..\TicTacToeGameServer\ReplayData\" + username )))
+        #region OLD CODE
+        //if (Directory.Exists((@"..\TicTacToeGameServer\ReplayData\" + username )))
+        //{
+
+        //    DirectoryInfo directoriy = new DirectoryInfo(@"..\TicTacToeGameServer\ReplayData\" + username);
+        //    foreach (var currentFile in directoriy.GetFiles("*.txt"))
+        //    {
+        //        string filename = "";
+        //        filename = currentFile.Name;
+        //        Debug.Log(filename);
+        //        NetworkedServer.Instance.notifyUser(ServerToClientSignifiers.GetReplayData, userID, filename);
+        //    }
+        //    NetworkedServer.Instance.notifyUser(ServerToClientSignifiers.DataConfirmation, userID, "");
+        //}
+        #endregion
+
+
+        try
         {
+            string directoryPath = Path.Combine("..", "TicTacToeGameServer", "ReplayData", username);
 
-            DirectoryInfo directoriy = new DirectoryInfo(@"..\TicTacToeGameServer\ReplayData\" + username);
-            foreach (var currentFile in directoriy.GetFiles("*.txt"))
+            if (Directory.Exists(directoryPath))
             {
-                string filename = "";
-                filename = currentFile.Name;
-                Debug.Log(filename);
-                NetworkedServer.Instance.notifyUser(15, userID, filename);
-            }
-            NetworkedServer.Instance.notifyUser(17, userID, "");
-        }
+                DirectoryInfo directoryInfo = new DirectoryInfo(directoryPath);
 
+                foreach (var currentFile in directoryInfo.GetFiles("*.txt"))
+                {
+                    string filename = currentFile.Name;
+                    Debug.Log(filename);
+
+                    // Notify the client about each replay file
+                    NetworkedServer.Instance.notifyUser(ServerToClientSignifiers.GetReplayData, userID, filename);
+                }
+
+                // Notify the client that the data is confirmed
+                NetworkedServer.Instance.notifyUser(ServerToClientSignifiers.DataConfirmation, userID, "");
+            }
+            else
+            {
+                // Notify the client about the absence of replay data
+                NetworkedServer.Instance.notifyUser(ServerToClientSignifiers.NoReplayDataSaved, userID, "");
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError("Error processing replay data: " + ex.Message);
+        }
     }
 
     static public void SendReplayData(string username, int userID, string replayName)

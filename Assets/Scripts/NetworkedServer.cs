@@ -114,17 +114,18 @@ public class NetworkedServer : MonoBehaviour
                 SystemManager.Instance.createAccount(newUsername, newPassword, userID);//Username, password, id
                 break;
 
-            case 2://Create GameRoom or Join GameRoom
+            case ClientToServerSignifiers.CreateORJoinGameRoom://Create GameRoom or Join GameRoom #2
                 string roomName = dataReceived[2];
                 string playerName = dataReceived[1];
                 joinOrCreateGameRoom(userID, roomName, playerName);
                 break;
 
-            case 3://Game is Ready
-                StartMatch(userID, dataReceived[1]);//userID,roomName
+            case ClientToServerSignifiers.GameisReady://Game is Ready #3
+                string roomNameWhenReady = dataReceived[1];
+                StartMatch(userID, roomNameWhenReady);//userID,roomName
                 break;
 
-            case 4: // PlayerMove
+            case ClientToServerSignifiers.PlayerMadeAMove: // PlayerMove #4
 
                 if(usedButtons == "")
                 {
@@ -138,13 +139,14 @@ public class NetworkedServer : MonoBehaviour
                 PlayerXMadeMove(userID, int.Parse(dataReceived[1]), int.Parse(dataReceived[2]));//UserID, ButtonIndex, PlayerOnTurn
                 break;
 
-            case 5: //Reset game
+            case ClientToServerSignifiers.RestartMatch: //#5
                 ReMatch(userID, dataReceived[1]);//userId, roomName
                 break;
 
 
-            case 6: //Leave game notification
-                leaveRoomName(dataReceived[1]);//Room Name
+            case ClientToServerSignifiers.PlayerLeftGameRoom: //#6
+                string GameRoomName_ = dataReceived[1];
+                NotifyGameOverOnPlayerLeave(GameRoomName_);//Room Name
                 break;
 
             case 7://Message received in the server now send it to X player to show it in their screen
@@ -168,7 +170,7 @@ public class NetworkedServer : MonoBehaviour
                 LogOutUser(userID);
                 break;
 
-            case 12: // Get data for replay mode
+            case ClientToServerSignifiers.WatchReplay: // Get data for replay mode
                 GetReplayData(userID);
                 break;
 
@@ -176,9 +178,10 @@ public class NetworkedServer : MonoBehaviour
                 SendReplayData(userID, dataReceived[1]);
                 break;
 
-            case 14:
-            {
-                    leaveRoomName(dataReceived[1]);
+            case ClientToServerSignifiers.PlayerLeftLobbyRoom:
+                {
+                    string LobbyRomName = dataReceived[1];
+                    leaveLobbyRoom(LobbyRomName);
                     break;
             }
         }
@@ -284,7 +287,7 @@ public class NetworkedServer : MonoBehaviour
             {
                 // Room with the specified name doesn't exist, create a new one
                 CreateGameRoom(Players[playerIndex], roomName);
-                notifyUser(5, userID, roomName);
+                notifyUser(ServerToClientSignifiers.RoomCreated, userID, roomName);
                 Debug.Log("Player 1 creating");
                 searchIsDone = true;
             }
@@ -293,7 +296,7 @@ public class NetworkedServer : MonoBehaviour
                 // Room with the specified name exists, join it
                 var existingRoom = GameRooms.First(room => room.GetComponent<GameRoomManager>().roomName == roomName);
                 existingRoom.GetComponent<GameRoomManager>().Player2 = Players[playerIndex];
-                notifyUser(6, userID, roomName);
+                notifyUser(ServerToClientSignifiers.JoinRoomX, userID, roomName);
                 Debug.Log("Player 2 joining");
                 searchIsDone = true;
             }
@@ -336,32 +339,25 @@ public class NetworkedServer : MonoBehaviour
     }
     private void StartMatch(int userID, string roomName)
     {
-
         bool searchisDone = false;
         int i = 0;
+        Debug.Log("RoomName: " + roomName);
+        Debug.Log("Starting Match");
 
-        Debug.Log("RoomName " + roomName);
-
-
-        while (!searchisDone)
+        while (!searchisDone && i < GameRooms.Count)
         {
-          
-             if (GameRooms[i].GetComponent<GameRoomManager>().roomName == roomName)
-             {
-                 searchisDone = true;
+            if (GameRooms[i].GetComponent<GameRoomManager>().roomName == roomName)
+            {
+                searchisDone = true;
 
-                if (searchisDone)
+                if (GameRooms[i].GetComponent<GameRoomManager>().Player1 != null && GameRooms[i].GetComponent<GameRoomManager>().Player2 != null)
                 {
+                    // Generate a random number (0 or 1) to determine the starting player
+                    int startingPlayer = UnityEngine.Random.Range(0, 2);
 
-                    if ((GameRooms[i].GetComponent<GameRoomManager>().Player2 && GameRooms[i].GetComponent<GameRoomManager>().Player1) != null)
-                    {
-                        
-                        notifyUser(7, GameRooms[i].GetComponent<GameRoomManager>().Player1.GetComponent<PlayerInfo>().userID, roomName + ",0");
-                        notifyUser(7, GameRooms[i].GetComponent<GameRoomManager>().Player2.GetComponent<PlayerInfo>().userID, roomName + ",1");
-
-
-                    }
-
+                    // Notify both players with the randomized starting player
+                    notifyUser(ServerToClientSignifiers.StartMatch, GameRooms[i].GetComponent<GameRoomManager>().Player1.GetComponent<PlayerInfo>().userID, roomName + "," + startingPlayer);
+                    notifyUser(ServerToClientSignifiers.StartMatch, GameRooms[i].GetComponent<GameRoomManager>().Player2.GetComponent<PlayerInfo>().userID, roomName + "," + (1 - startingPlayer));
                 }
             }
             else
@@ -370,8 +366,7 @@ public class NetworkedServer : MonoBehaviour
             }
         }
 
-     
-    
+
     }
     private void ReMatch(int userID, string roomName)
     {
@@ -508,9 +503,9 @@ public class NetworkedServer : MonoBehaviour
             return false;
         }
     }
-    public void leaveRoomName(string roomName)
+    public void leaveLobbyRoom(string roomName)
     {
-        Debug.Log("LEAVING ROOM EXECUTE");
+        Debug.Log("LEAVING LOBBY ROOM EXECUTE");
         bool searchIsDone = false;
         int i = 0;
 
@@ -562,73 +557,171 @@ public class NetworkedServer : MonoBehaviour
 
         Debug.Log("Player removed. Players count: " + Players.Count);
     }
+    public void NotifyGameOverOnPlayerLeave(string roomName)
+    {
+        Debug.Log("NOTIFY GAME OVER ON PLAYER LEAVE");
 
-    // Check if a room is empty based on your specific criteria
+        int roomIndex = FindGameRoomIndex(roomName);
+
+        if (roomIndex != -1)
+        {
+            HandlePlayerLeaveNotifications(GameRooms[roomIndex]);
+            DestroyAndRemoveGameRoom(roomIndex);
+        }
+        else
+        {
+            Debug.LogError("Room not found: " + roomName);
+        }
+
+        Debug.Log("COMPLETED EXECUTE");
+    }
+    private void HandlePlayerLeaveNotifications(GameObject gameRoom)
+    {
+        GameObject player1 = gameRoom.GetComponent<GameRoomManager>().Player1;
+        GameObject player2 = gameRoom.GetComponent<GameRoomManager>().Player2;
+
+        NotifyPlayerGameOver(player1);
+        NotifyPlayerGameOver(player2);
+
+        List<GameObject> spectators = gameRoom.GetComponent<GameRoomManager>().spectators;
+        NotifySpectatorsGameOver(spectators);
+
+        // Clear Player1 and Player2 references
+        gameRoom.GetComponent<GameRoomManager>().Player1 = null;
+        gameRoom.GetComponent<GameRoomManager>().Player2 = null;
+
+        // Clear the spectators list
+        spectators.Clear();
+    }
+
+    private void NotifyPlayerGameOver(GameObject player)
+    {
+        if (player != null)
+        {
+            notifyUser(ServerToClientSignifiers.PlayerLeftGameRoom, player.GetComponent<PlayerInfo>().userID, "Player left the game");
+        }
+    }
+
+    private void NotifySpectatorsGameOver(List<GameObject> spectators)
+    {
+        foreach (var spectator in spectators)
+        {
+            notifyUser(ServerToClientSignifiers.PlayerLeftGameRoom, spectator.GetComponent<PlayerInfo>().userID, "Player left the game");
+        }
+    }
+    private void DestroyAndRemoveGameRoom(int roomIndex)
+    {
+        Debug.Log("Room to be removed: " + GameRooms[roomIndex].GetComponent<GameRoomManager>().roomName);
+        Destroy(GameRooms[roomIndex]);
+        GameRooms.RemoveAt(roomIndex);
+        Debug.Log("Room removed. GameRooms count: " + GameRooms.Count);
+    }
+    private int FindGameRoomIndex(string roomName)
+    {
+        for (int i = 0; i < GameRooms.Count; i++)
+        {
+            if (GameRooms[i].GetComponent<GameRoomManager>().roomName == roomName)
+            {
+                return i;
+            }
+        }
+        return -1;
+    }
     private bool IsRoomEmpty(GameRoomManager roomManager)
     {
-        // Customize this based on your specific conditions for an empty room
         return roomManager.Player1 == null && roomManager.Player2 == null && (roomManager.spectators == null || roomManager.spectators.Count == 0);
     }
+   
+    
     private void LogOutUser(int userID)
     {
-        bool searchisDone = false;
-        Debug.Log("logOUt");
-    
-        int i = 0;
-        while (!searchisDone)
+        bool searchIsDone = false;
+        Debug.Log("Logging Out");
+
+        for (int i = 0; i < Players.Count; i++)
         {
-          
             if (Players[i].GetComponent<PlayerInfo>().userID == userID)
             {
-                searchisDone = true;
+                searchIsDone = true;
                 Debug.Log(Players[i].GetComponent<PlayerInfo>().userID.ToString());
-                Debug.Log("PlayerFound");
+                Debug.Log("Player Found");
                 Debug.Log(Players[i].GetComponent<PlayerInfo>().playerName.ToString() + " Player name");
-                {
-                    string name = Players[i].GetComponent<PlayerInfo>().playerName.ToString();
 
-                    
-                    GameObject playerObject = GameObject.Find(name);
+                string playerName = Players[i].GetComponent<PlayerInfo>().playerName.ToString();
+                GameObject playerObject = GameObject.Find(playerName);
+
+                if (playerObject != null)
+                {
                     Players.RemoveAt(i);
                     Destroy(playerObject);
                     Debug.Log("Player found and deleted");
-
+                }
+                else
+                {
+                    Debug.LogError("Player GameObject not found for player name: " + playerName);
                 }
             }
-            else
-            {
-                Debug.Log("i++");
-                i++;
-            }
+        }
+
+        if (!searchIsDone)
+        {
+            Debug.LogError("Player not found with userID: " + userID);
         }
     }
+    //private void GetReplayData(int userID)
+    //{
+
+    //    bool searchisDone = false;
+    //    Debug.Log("GetReplayData");
+    //    int i = 0;
+    //    while (!searchisDone)
+    //    {
+
+    //        if (Players[i].GetComponent<PlayerInfo>().userID == userID)
+    //        {
+    //            searchisDone = true;
+
+
+    //             string name = Players[i].GetComponent<PlayerInfo>().playerName.ToString();
+
+    //            DataManager.VerifyReplayData(name, userID);
+    //            Debug.Log("Verifying data");
+
+    //        }
+    //        else
+    //        {
+    //            Debug.Log("i++");
+    //            i++;
+    //        }
+    //    }
+    //}
 
     private void GetReplayData(int userID)
     {
+        string playerName = GetPlayerNameByUserID(userID);
 
-        bool searchisDone = false;
-        Debug.Log("GetReplayData");
-        int i = 0;
-        while (!searchisDone)
+        if (playerName != null)
         {
+            DataManager.VerifyReplayData(playerName, userID);
+            Debug.Log("Verifying data");
+        }
+        else
+        {
+            Debug.Log("Player not found with userID: " + userID);
+        }
+    }
 
-            if (Players[i].GetComponent<PlayerInfo>().userID == userID)
+    private string GetPlayerNameByUserID(int userID)
+    {
+        foreach (var player in Players)
+        {
+            if (player.GetComponent<PlayerInfo>().userID == userID)
             {
-                searchisDone = true;
-            
-                
-                 string name = Players[i].GetComponent<PlayerInfo>().playerName.ToString();
-
-                DataManager.VerifyReplayData(name, userID);
-                Debug.Log("Verifying data");
-                
-            }
-            else
-            {
-                Debug.Log("i++");
-                i++;
+                return player.GetComponent<PlayerInfo>().playerName.ToString();
             }
         }
+
+        return null; // Player not found
     }
     private void SendReplayData(int userID, string replayName)
     {
@@ -676,7 +769,6 @@ public class NetworkedServer : MonoBehaviour
             SystemManager.Instance.SavingDataInServer(playerName, PlayerInTurn, replayname, usedButtons);  
         }
     }
-
     private void PlayerXMadeMove(int userID, int ButtonIndex, int turnOfPlayerX)
     {
         bool searchisDone = false;
@@ -728,6 +820,7 @@ public class NetworkedServer : MonoBehaviour
 
 
     }
+    
     public void displayMessage(int userID, string message)
     {
         bool searchisDone = false;
@@ -807,7 +900,7 @@ public class NetworkedServer : MonoBehaviour
                 break;
 
             case 11: // Error - Player left the game room
-                msg = ServerToClientSignifiers.LeaveGameRoom + "," + message;
+                msg = ServerToClientSignifiers.PlayerLeftGameRoom + "," + message;
                 break;
 
             case 12: //Message to display
@@ -848,16 +941,16 @@ static public class ClientToServerSignifiers
      public const int CreateNewAccount = 1;
      public const int CreateORJoinGameRoom = 2;
      public const int GameisReady = 3;
-     public const int playerMoved = 4;
+     public const int PlayerMadeAMove = 4;
      public const int RestartMatch = 5;
-     public const int LeaveGameNotification = 6;
+     public const int PlayerLeftGameRoom = 6;
      public const int SendMessageToOtherPlayer = 7;
      public const int SaveReplayData = 8;
      public const int SpectateRoom = 9;
      public const int LogOut = 11;
      public const int WatchReplay = 12;
      public const int PlayReplay = 13;
-     public const int LeaveGameRoomLobby = 14;
+     public const int PlayerLeftLobbyRoom = 14;
 }
 
 static public class ServerToClientSignifiers
@@ -874,7 +967,7 @@ static public class ServerToClientSignifiers
      public const int PlayerXMadeAMove = 8;
      public const int RestartMatch = 9;
      public const int UserAlreadyLogged = 10;
-     public const int LeaveGameRoom = 11;
+     public const int PlayerLeftGameRoom = 11;
      public const int DisplayMessageInScreen = 12;
      public const int SetSpectatorMode = 13;
      public const int GetReplayData = 15;
@@ -882,5 +975,6 @@ static public class ServerToClientSignifiers
      public const int DataConfirmation = 17;
      public const int LeaveGameRoomLobby = 14;
      public const int InvalidAccountInformation = 20;
+    public const int NoReplayDataSaved = 21;
 
 }
