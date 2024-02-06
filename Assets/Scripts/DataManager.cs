@@ -47,19 +47,19 @@ public class DataManager : MonoBehaviour
                     {
                         Debug.Log("Correct username & password");
                         NetworkedServer.Instance.CreatePlayer(lineData[0], userID);
-                        NetworkedServer.Instance.notifyUser(ServerToClientSignifiers.AcessGranted, userID, "Access Granted");
+                        NetworkedServer.Instance.NotifyUser(ServerToClientSignifiers.AcessGranted, userID, "Access Granted");
                     }
                     else
                     {
                         Debug.Log("Access Denied - Wrong Password");
-                        NetworkedServer.Instance.notifyUser(ServerToClientSignifiers.WrongPassword, userID, "Access Denied - Wrong password");
+                        NetworkedServer.Instance.NotifyUser(ServerToClientSignifiers.WrongPassword, userID, "Access Denied - Wrong password");
                     }
                 }
             }
             else
             {
                 Debug.Log("Access Denied - Wrong username");
-                NetworkedServer.Instance.notifyUser(ServerToClientSignifiers.WrongUsername, userID, "Access Denied - Wrong username");
+                NetworkedServer.Instance.NotifyUser(ServerToClientSignifiers.WrongUsername, userID, "Access Denied - Wrong username");
             }
         }
         catch (Exception ex)
@@ -67,38 +67,7 @@ public class DataManager : MonoBehaviour
             // Handle any exceptions that might occur during file operations
             Debug.LogError($"Error while verifying user data: {ex.Message}");
         }
-        #region OLD CODE
-        //if (File.Exists(@"..\TicTacToeGameServer\Users\" + username+ ".txt"))
-        //{
-        //    Debug.Log("file Exist");
-        //    using (StreamReader sr = new StreamReader(@"..\TicTacToeGameServer\Users\" +username + ".txt"))
-        //    {
-        //        string line = sr.ReadLine();
-        //        string[] lineData = line.Split(',');
-
-
-        //        if (lineData[0] == username && lineData[1] == password)
-        //        {
-        //            Debug.Log("True username & passoword");
-        //            NetworkedServer.Instance.CreatePlayer(lineData[0], userID);
-        //            NetworkedServer.Instance.notifyUser(0, userID, "AccesGranted"); // ACCESS GRANTED 
-
-        //        }
-        //        else
-        //        {
-        //            Debug.Log("WrongPassword"); // ACCESS DENIED -Wrong password
-        //            NetworkedServer.Instance.notifyUser(3, userID, " AccesDenied -Wrong password");
-        //        }
-        //        sr.Close();
-        //    }
-        //}
-        //else
-        //{
-        //    //AccesDenied -Wrong username
-        //    NetworkedServer.Instance.notifyUser(2, userID, " AccesDenied -Wrong username");
-        //}
-
-        #endregion
+     
     }
 
     static public void SaveReplayData(string username, int turnofPlayer, string replayName, string usedButtons)
@@ -125,23 +94,6 @@ public class DataManager : MonoBehaviour
 
     static public void VerifyReplayData(string username, int userID)
     {
-        #region OLD CODE
-        //if (Directory.Exists((@"..\TicTacToeGameServer\ReplayData\" + username )))
-        //{
-
-        //    DirectoryInfo directoriy = new DirectoryInfo(@"..\TicTacToeGameServer\ReplayData\" + username);
-        //    foreach (var currentFile in directoriy.GetFiles("*.txt"))
-        //    {
-        //        string filename = "";
-        //        filename = currentFile.Name;
-        //        Debug.Log(filename);
-        //        NetworkedServer.Instance.notifyUser(ServerToClientSignifiers.GetReplayData, userID, filename);
-        //    }
-        //    NetworkedServer.Instance.notifyUser(ServerToClientSignifiers.DataConfirmation, userID, "");
-        //}
-        #endregion
-
-
         try
         {
             string directoryPath = Path.Combine("..", "TicTacToeGameServer", "ReplayData", username);
@@ -156,16 +108,16 @@ public class DataManager : MonoBehaviour
                     Debug.Log(filename);
 
                     // Notify the client about each replay file
-                    NetworkedServer.Instance.notifyUser(ServerToClientSignifiers.GetReplayData, userID, filename);
+                    NetworkedServer.Instance.NotifyUser(ServerToClientSignifiers.GetReplayData, userID, filename);
                 }
 
                 // Notify the client that the data is confirmed
-                NetworkedServer.Instance.notifyUser(ServerToClientSignifiers.DataConfirmation, userID, "");
+                NetworkedServer.Instance.NotifyUser(ServerToClientSignifiers.DataConfirmation, userID, "");
             }
             else
             {
                 // Notify the client about the absence of replay data
-                NetworkedServer.Instance.notifyUser(ServerToClientSignifiers.NoReplayDataSaved, userID, "");
+                NetworkedServer.Instance.NotifyUser(ServerToClientSignifiers.NoReplayDataSaved, userID, "No data");
             }
         }
         catch (Exception ex)
@@ -183,7 +135,7 @@ public class DataManager : MonoBehaviour
             using (StreamReader sr = new StreamReader(@"..\TicTacToeGameServer\ReplayData\" + username + @"\" + replayName))
              {
                             string line = sr.ReadLine();
-                            NetworkedServer.Instance.notifyUser(16, userID, line);
+                            NetworkedServer.Instance.NotifyUser(16, userID, line);
                             sr.Close();
              }
         }
